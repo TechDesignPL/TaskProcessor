@@ -1,0 +1,18 @@
+{
+    "name": "techdesign/taskprocessor",
+    "type": "library",
+    "authors": [
+        {
+            "name": "TechDesign",
+            "email": "info@techdesign.pl"
+        }
+    ],
+    "autoload": {
+        "psr-4" : {
+            "TechDesign\\TaskProcessor\\" : "src/"
+        }
+    },
+    "require": {
+        "oyejorge/less.php": "v1.7.0.14"
+    }
+}
