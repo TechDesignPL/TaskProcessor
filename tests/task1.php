@@ -25,6 +25,6 @@ $processor->task('js', function ($pipe) {
 		->schedule(new Action\DestAction('tests/t2/out/'))
 	;
 });
-
-$processor->run('less');
-$processor->run('js');
+$processor->task('default', ['less', 'js']);
+$processor->run('default');
+//$processor->run('js');
