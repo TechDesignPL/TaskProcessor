@@ -3,6 +3,7 @@
 namespace TechDesign\TaskProcessor\Action;
 
 use MatthiasMullie\Minify\CSS;
+use MatthiasMullie\Minify\JS;
 use TechDesign\TaskProcessor\Action;
 
 class MinifyAction extends Action
@@ -22,7 +23,7 @@ class MinifyAction extends Action
 			}
 			$parts = pathinfo($file['path']);
 
-			$minifier = new CSS();
+			$minifier = strtolower($parts['extension']) == 'css' ? new CSS() : new JS();
 			$minifier->add($file['content']);
 			$content = $minifier->minify();
 
