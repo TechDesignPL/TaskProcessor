@@ -25,13 +25,4 @@ class DestAction extends Action
 		}
 		return $input;
 	}
-
-	public function unmask($file)
-	{
-		if (file_exists($file)) {
-			return (array)$file;
-		}
-
-		return glob($file);
-	}
 }

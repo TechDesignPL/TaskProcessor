@@ -16,4 +16,15 @@ $processor->task('less', function ($pipe) {
 	;
 });
 
+$processor->task('js', function ($pipe) {
+	/** @var \TechDesign\TaskProcessor\Pipe $pipe */
+	$pipe
+		->schedule(new Action\SrcAction(['tests/t2/*.js']))
+		->schedule(new Action\ConcatAction('app.js'))
+		->schedule(new Action\MinifyAction())
+		->schedule(new Action\DestAction('tests/t2/out/'))
+	;
+});
+
 $processor->run('less');
+$processor->run('js');
