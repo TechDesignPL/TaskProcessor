@@ -10,10 +10,10 @@ $processor = new Processor($loader);
 $processor->task('less', function ($task) {
 	/** @var \TechDesign\TaskProcessor\Task $task */
 	$task
-		->schedule(new Action\SrcAction(['tests/t1/app.less']))
-		->schedule(new Action\PrintAction())
-		->schedule(new Action\LessAction())
-		->schedule(new Action\DestAction('tests/t1/'));
+		->src(['tests/t1/app.less'])
+		->print()
+		->less()
+		->dest('tests/t1/');
 });
 
 $jsTask = new \TechDesign\TaskProcessor\Task('js');

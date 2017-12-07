@@ -1,11 +1,11 @@
 <?php
 
-include_once __DIR__ . '/../vendor/autoload.php';
+$loader = require __DIR__ . '/../vendor/autoload.php';
 
 use TechDesign\TaskProcessor\Processor;
 use TechDesign\TaskProcessor\Action;
 
-$processor = new Processor();
+$processor = new Processor($loader);
 
 $processor->task('less', function ($task) {
 	/** @var \TechDesign\TaskProcessor\Task $task */

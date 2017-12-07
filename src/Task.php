@@ -57,6 +57,14 @@ class Task extends ThreadProxy
 		Printer::prnt(sprintf('Task \'%s\' ended, took: %fs', $this->name,  $this->getTimeSpent()), Printer::FG_LIGHT_CYAN);
 		return true;
 	}
+	
+	public function __call($name, $arguments)
+	{
+		$class = 'TechDesign\TaskProcessor\Action\\' . ucfirst($name) . 'Action';
+		if (class_exists($class)) {
+			return $this->schedule(new $class(...$arguments));
+		}
+	}
 
 	/**
 	 * @return string
