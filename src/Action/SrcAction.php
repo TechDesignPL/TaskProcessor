@@ -3,6 +3,7 @@
 namespace TechDesign\TaskProcessor\Action;
 
 use TechDesign\TaskProcessor\Action;
+use TechDesign\TaskProcessor\Helper\FileResolver;
 
 class SrcAction extends Action
 {
@@ -15,20 +16,6 @@ class SrcAction extends Action
 
 	public function run($input)
 	{
-		$result = [];
-		foreach ($this->srcFiles as $item) {
-
-			$result = array_merge($result, $this->unmask($item));
-		}
-		return $result;
-	}
-
-	public function unmask($file)
-	{
-		if (file_exists($file)) {
-			return (array)$file;
-		}
-
-		return glob($file);
+		return FileResolver::resolveFiles($this->srcFiles);
 	}
 }
