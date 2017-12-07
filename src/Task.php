@@ -12,6 +12,7 @@ class Task extends ThreadProxy
 
 	/** @var Action[]|callable[] */
 	protected $callableChain = [];
+	/** @var \Composer\Autoload\ClassLoader */
 	protected $classLoader;
 
 	/**
@@ -39,6 +40,7 @@ class Task extends ThreadProxy
 		if (!class_exists('Printer')) {
 			$this->classLoader->register();
 		}
+
 		Printer::prnt(sprintf('Task \'%s\' started.' ,  $this->name), Printer::FG_CYAN);
 
 		foreach ($this->callableChain as $action) {
@@ -86,6 +88,11 @@ class Task extends ThreadProxy
 		return $spent;
 	}
 
+	/**
+	 * If multithreading is enabled then we need to have composer autoloader class inside child threads
+	 *
+	 * @param $classLoader
+	 */
 	public function setClassLoader($classLoader)
 	{
 		$this->classLoader = $classLoader;
