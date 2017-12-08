@@ -1,6 +1,7 @@
 {
     "name": "techdesign/taskprocessor",
     "type": "library",
+    "bin": ["bin/taskprocessor.php"],
     "authors": [
         {
             "name": "TechDesign",

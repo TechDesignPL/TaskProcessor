@@ -4,7 +4,18 @@ namespace TechDesign\TaskProcessor;
 
 use TechDesign\TaskProcessor\Helper\Printer;
 
-class Task extends ThreadProxy
+/**
+ * Class Task
+ * @package TechDesign\TaskProcessor
+ * @method $this src(...$args)
+ * @method $this less(...$args)
+ * @method $this dest(...$args)
+ * @method $this minify(...$args)
+ * @method $this print(...$args)
+ * @method $this rename(...$args)
+ * @method $this concat(...$args)
+ */
+class Task extends ThreadProxy implements TaskInterface
 {
 	protected $name;
 	protected $started;
@@ -14,6 +25,8 @@ class Task extends ThreadProxy
 	protected $callableChain = [];
 	/** @var \Composer\Autoload\ClassLoader */
 	protected $classLoader;
+	/** @var Processor */
+	protected $processor;
 
 	/**
 	 * @param $action
@@ -54,7 +67,7 @@ class Task extends ThreadProxy
 		}
 
 		$this->ended = microtime(true);
-		Printer::prnt(sprintf('Task \'%s\' ended, took: %fs', $this->name,  $this->getTimeSpent()), Printer::FG_LIGHT_CYAN);
+		Printer::prnt(sprintf('Task \'%s\' ended, took: %s', $this->name,  $this->getTimeSpent()), Printer::FG_LIGHT_CYAN);
 		return true;
 	}
 	
@@ -74,26 +87,14 @@ class Task extends ThreadProxy
 		return $this->name;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getStarted()
-	{
-		return $this->started;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getEnded()
-	{
-		return $this->ended;
-	}
-
 	public function getTimeSpent()
 	{
 		$spent = ($this->ended - $this->started);
-		return $spent;
+		if ($spent < 1) {
+			return number_format($spent * 1000) . 'ms';
+		} else {
+			return number_format($spent, 3) . 's';
+		}
 	}
 
 	/**
@@ -104,5 +105,10 @@ class Task extends ThreadProxy
 	public function setClassLoader($classLoader)
 	{
 		$this->classLoader = $classLoader;
+	}
+
+	public function setProcessor($processor)
+	{
+		$this->processor = $processor;
 	}
 }

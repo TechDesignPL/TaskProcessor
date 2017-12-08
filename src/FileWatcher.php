@@ -2,35 +2,47 @@
 
 namespace TechDesign\TaskProcessor;
 
+use TechDesign\TaskProcessor\Helper\FileResolver;
 use TechDesign\TaskProcessor\Helper\Printer;
 
-class FileWatcher
+class FileWatcher extends ThreadProxy implements TaskInterface
 {
+	protected $fileMask;
 	protected $filesToWatch = [];
-	protected $dataToPass;
-	protected $callback;
+	protected $tasksToExecute;
 	protected $interval;
 
-	public function __construct($filesToWatch, $callback, $dataToPass, $interval = 1000)
-	{
-		foreach ($filesToWatch as $file) {
-			$this->filesToWatch[] = [
-				'path'  => $file,
-				'mtime' => filemtime($file)
-			];
-		}
+	/** @var Processor */
+	protected $processor;
+	/** @var \Composer\Autoload\ClassLoader */
+	protected $classLoader;
 
-		$this->dataToPass = $dataToPass;
-		$this->callback = $callback;
+	public function __construct($fileMask, $tasksToExecute, $interval = 500)
+	{
+		$this->fileMask = $fileMask;
+		$this->tasksToExecute = $tasksToExecute;
 		$this->interval = $interval;
 	}
 
-	public function watch()
+	public function run()
 	{
+		if (!class_exists('Printer')) {
+			$this->classLoader->register();
+		}
+
+		$resolved = FileResolver::resolveFiles($this->fileMask);
+
+		foreach ($resolved as $file) {
+			$f = new \stdClass();
+			$f->file = $file;
+			$f->mtime = filemtime($file);
+			$this->filesToWatch[] = $f;
+		}
+
 		while (true) {
 			if ($this->checkUpdates()) {
 				Printer::prnt('Change detected!');
-				call_user_func($this->callback, $this->dataToPass);
+				call_user_func([$this->processor, 'run'], $this->tasksToExecute);
 			}
 
 			clearstatcache();
@@ -42,14 +54,29 @@ class FileWatcher
 	{
 		$changeDetected = false;
 
-		foreach ($this->filesToWatch as &$file) {
-			$mtime = filemtime($file['path']);
-			if ($mtime > $file['mtime']) {
-				$file['mtime'] = $mtime;
+		foreach ($this->filesToWatch as $file) {
+			$mTime = filemtime($file->file);
+			if ($mTime > $file->mtime) {
+				$file->mtime = $mTime;
 				$changeDetected = true;
 			}
 		}
 
 		return $changeDetected;
+	}
+
+	/**
+	 * If multithreading is enabled then we need to have composer autoloader class inside child threads
+	 *
+	 * @param $classLoader
+	 */
+	public function setClassLoader($classLoader)
+	{
+		$this->classLoader = $classLoader;
+	}
+
+	public function setProcessor($processor)
+	{
+		$this->processor = $processor;
 	}
 }

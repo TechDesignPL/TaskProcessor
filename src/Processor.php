@@ -2,12 +2,13 @@
 
 namespace TechDesign\TaskProcessor;
 
-use TechDesign\TaskProcessor\Helper\FileResolver;
 use TechDesign\TaskProcessor\Helper\Printer;
 
 class Processor
 {
-	/** @var Task[]  */
+	const VERSION = '1.0.0';
+
+	/** @var TaskInterface[]  */
 	public $tasks = [];
 	protected $classLoader;
 
@@ -29,7 +30,6 @@ class Processor
 			}
 
 			$task = $this->tasks[$taskName];
-			$task->setClassLoader($this->classLoader);
 			$task->start(PTHREADS_INHERIT_ALL);
 		}
 
@@ -41,27 +41,27 @@ class Processor
 
 	public function watch($files, $tasks)
 	{
-		$watcher = new FileWatcher(
-			FileResolver::resolveFiles($files),
-			array($this, 'run'),
-			$tasks
-		);
-		$watcher->watch();
+		$watcher = new FileWatcher($files, $tasks);
+		$watcher->setProcessor($this);
+		$watcher->setClassLoader($this->classLoader);
+		$watcher->start();
+		$watcher->join();
 	}
 
 	/**
 	 * @param string $name
-	 * @param callable|Task|array $callable
+	 * @param callable|TaskInterface|array $task
 	 * @throws \Exception
 	 */
-	public function task($name, $callable)
+	public function task($name, $task)
 	{
-		if (is_callable($callable)) {
-			$task = new Task($name, $callable);
-		} elseif ($callable instanceof Task) {
-			$task = $callable;
-		} elseif(is_array($callable)) {
-			$task = new TaskChain($this, $callable);
+		if (is_callable($task)) {
+			$task = new Task($name, $task);
+		} elseif ($task instanceof TaskInterface) {
+			$task->setClassLoader($this->classLoader);
+			$task->setProcessor($this);
+		} elseif(is_array($task)) {
+			$task = new TaskChain($this, $task);
 		} else {
 			throw new \Exception('Unsupported task type');
 		}

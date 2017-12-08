@@ -31,11 +31,31 @@ class Printer
 	const BG_CYAN       = '46';
 	const BG_LIGHT_GRAY = '47';
 
+	public static function timestamp($format = 'H:i:s')
+	{
+		return self::getColoredString(date('H:i:s'), self::FG_LIGHT_BLUE);
+	}
 
 	public static function prnt($message, $fgColor = null, $bgColor = null)
 	{
-		$timestamp = self::getColoredString(date('H:i:s'), self::FG_LIGHT_BLUE);
+		$timestamp = self::timestamp();
 		vprintf("[%s]: %s\n", [$timestamp, self::getColoredString($message, $fgColor, $bgColor)]);
+	}
+
+	public static function error($message)
+	{
+		vprintf("%s: %s\n", [
+			self::getColoredString('Error', self::FG_RED),
+			self::getColoredString($message, self::FG_LIGHT_RED)
+		]);
+	}
+
+	public static function info($message)
+	{
+		vprintf("%s: %s\n", [
+			self::getColoredString('Info', self::FG_BLUE),
+			self::getColoredString($message, self::FG_LIGHT_BLUE)
+		]);
 	}
 
 	public static function getColoredString($string, $fgColor = null, $bgColor = null)
