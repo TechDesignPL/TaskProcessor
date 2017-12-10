@@ -49,9 +49,11 @@ class ShellHelper
 	public static function detectOS($binary)
 	{
 		if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
-			return $binary . '.exe';
+			return str_replace('{os}', 'win', $binary). '.exe';
+		} elseif (strncasecmp(PHP_OS, 'DAR', 3)) {
+			return str_replace('{os}', 'osx', $binary);
 		} else {
-			return $binary;
+			return str_replace('{os}', 'linux', $binary);
 		}
 	}
 }

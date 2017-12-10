@@ -7,7 +7,7 @@ use TechDesign\TaskProcessor\Helper\ShellHelper;
 
 class SassAction extends Action
 {
-	const BIN_PATH = __DIR__ . '/../bin/sassc';
+	const BIN_PATH = __DIR__ . '/../bin/{os}/sassc';
 
 	public function run($input)
 	{
@@ -16,7 +16,7 @@ class SassAction extends Action
 
 		foreach ($input as $file) {
 			if (!$file instanceof FileInput) {
-				$file = FileInput::fromPath($file);
+				$file = FileInput::fromPath($file, true);
 			}
 
 			$out = ShellHelper::execShell(self::BIN_PATH, $file->fullPath);

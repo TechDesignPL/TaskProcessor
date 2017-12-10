@@ -14,6 +14,8 @@ use TechDesign\TaskProcessor\Helper\Printer;
  * @method $this print(...$args)
  * @method $this rename(...$args)
  * @method $this concat(...$args)
+ * @method $this log(...$args)
+ * @method $this sass(...$args)
  */
 class Task extends ThreadProxy implements TaskInterface
 {

@@ -27,6 +27,17 @@ class FileInput
 		}
 	}
 
+	public function getPathInfo()
+	{
+		return pathinfo($this->fullPath);
+	}
+
+	public function getExtension()
+	{
+		$info = $this->getPathInfo();
+		return $info['extension'];
+	}
+
 	public function __toString()
 	{
 		return sprintf('FileInput: %s, content length: %d', $this->fullPath ?? $this->baseName, strlen($this->content));
