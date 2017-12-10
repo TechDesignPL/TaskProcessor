@@ -50,3 +50,5 @@ if (!file_exists($entryScript)) {
 }
 
 include_once $entryScript;
+
+$processor->wait();

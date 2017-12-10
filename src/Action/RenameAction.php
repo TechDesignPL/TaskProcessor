@@ -28,31 +28,38 @@ class RenameAction extends Action
 		$input = (array)$input;
 		$result = [];
 		foreach ($input as $file) {
+			if (!$file instanceof FileInput) {
+				$file = FileInput::fromPath($file);
+			}
 			$result[] = $this->rename($file);
 		}
 		return $result;
 	}
 
-	public function rename($file)
+	public function rename(FileInput $file)
 	{
-		$parts = pathinfo($file);
-
+		$parts = pathinfo($file->fullPath);
 
 		switch ($this->changeType) {
 			case self::TYPE_PREFIX:
-				return $parts['dirname'] . '/' . $this->string . $parts['basename'];
+				$file->setFullPath($parts['dirname'] . '/' . $this->string . $parts['basename']);
+				break;
 			case self::TYPE_SUFFIX:
-				return $file . $this->string;
+				$file->setFullPath($file . $this->string);
+				break;
 			case self::TYPE_EXTENSION:
-				return $parts['dirname'] . '/' . $parts['filename'] . '.' . $this->string;
+				$file->setFullPath($parts['dirname'] . '/' . $parts['filename'] . '.' . $this->string);
+				break;
 			case self::TYPE_PREEXTENSION:
-				return $parts['dirname'] . '/' . $parts['filename'] . $this->string . '.' . $parts['extension'];
+				$file->setFullPath($parts['dirname'] . '/' . $parts['filename'] . $this->string . '.' . $parts['extension']);
+				break;
 			case self::TYPE_CUSTOM:
-				return preg_replace_callback($this->string, $this->callback, $file);
+				$file->setFullPath(preg_replace_callback($this->string, $this->callback, $file));
 				break;
 			default:
 				throw new \Exception('Unrecognized change type');
 				break;
 		}
+		return $file;
 	}
 }

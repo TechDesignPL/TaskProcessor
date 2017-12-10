@@ -1,18 +1,21 @@
 <?php
+/**
+ * Simple example of file watcher
+ */
 
-$loader = require __DIR__ . '/../vendor/autoload.php';
-
-use TechDesign\TaskProcessor\Processor;
-use TechDesign\TaskProcessor\Action;
-
-$processor = new Processor($loader);
+use TechDesign\TaskProcessor\FileWatcher;
+/** @var \TechDesign\TaskProcessor\Processor $processor */
 
 $processor->task('less', function ($task) {
 	/** @var \TechDesign\TaskProcessor\Task $task */
 	$task
-		->schedule(new Action\SrcAction(['tests/t1/app.less']))
-		->schedule(new Action\LessAction())
-		->schedule(new Action\DestAction('tests/t1/'));
+		->src(['tests/t1/app.less'])
+		->less()
+		->dest('tests/t1/');
 });
 
-$processor->watch(['tests/t1/*.less'], ['less']);
+$processor->task('watch', function () {
+	return new FileWatcher('lessWatcher', ['tests/t1/*.less'], ['less']);
+}, true);
+
+$processor->run('watch');

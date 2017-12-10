@@ -10,7 +10,7 @@ class DestAction extends Action
 
 	public function __construct($dest)
 	{
-		$this->dest = $dest;
+		$this->dest = rtrim($dest, '\\/');
 		if (!is_dir($dest)) {
 			mkdir($dest);
 		}
@@ -20,9 +20,14 @@ class DestAction extends Action
 	{
 		$input = (array)$input;
 		foreach ($input as $item) {
-			$baseName = basename($item['path']);
-			file_put_contents($this->dest . $baseName, $item['content']);
+			if (!$item instanceof FileInput) {
+				throw new \Exception('Dest action requires FileInput to operate');
+			}
+
+			file_put_contents("{$this->dest}/{$item->baseName}", $item->content);
 		}
+
+		//pass input as it is
 		return $input;
 	}
 }

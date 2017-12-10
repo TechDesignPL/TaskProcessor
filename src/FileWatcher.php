@@ -11,14 +11,17 @@ class FileWatcher extends ThreadProxy implements TaskInterface
 	protected $filesToWatch = [];
 	protected $tasksToExecute;
 	protected $interval;
+	protected $name;
 
-	/** @var Processor */
-	protected $processor;
+	public $callback;
+	public $dataToPass;
+
 	/** @var \Composer\Autoload\ClassLoader */
 	protected $classLoader;
 
-	public function __construct($fileMask, $tasksToExecute, $interval = 500)
+	public function __construct($name, $fileMask, $tasksToExecute, $interval = 500)
 	{
+		$this->name = $name;
 		$this->fileMask = $fileMask;
 		$this->tasksToExecute = $tasksToExecute;
 		$this->interval = $interval;
@@ -26,42 +29,58 @@ class FileWatcher extends ThreadProxy implements TaskInterface
 
 	public function run()
 	{
+		$this->awake = true;
+
 		if (!class_exists('Printer')) {
 			$this->classLoader->register();
 		}
 
+		Printer::prnt(sprintf('Watcher \'%s\' started.' ,  $this->name), Printer::FG_CYAN);
+
 		$resolved = FileResolver::resolveFiles($this->fileMask);
 
+		$filesToWatch = [];
 		foreach ($resolved as $file) {
 			$f = new \stdClass();
 			$f->file = $file;
 			$f->mtime = filemtime($file);
-			$this->filesToWatch[] = $f;
+			$filesToWatch[] = $f;
 		}
 
 		while (true) {
-			if ($this->checkUpdates()) {
+			if ($this->checkUpdates($filesToWatch)) {
 				Printer::prnt('Change detected!');
-				call_user_func([$this->processor, 'run'], $this->tasksToExecute);
+				$this->synchronized(function($thread){
+					$thread->callback = 'run';
+					$a = '';
+					foreach ($thread->tasksToExecute as $tte) {
+						$a .= $tte;
+					}
+					$thread->dataToPass = json_encode($thread->tasksToExecute);
+					$thread->waiting = true;
+					$thread->wait();
+				}, $this);
 			}
 
-			clearstatcache();
 			usleep($this->interval * 1000);
 		}
+
+		$this->awake = false;
+		return true;
 	}
 
-	public function checkUpdates()
+	public function checkUpdates($filesToWatch)
 	{
 		$changeDetected = false;
 
-		foreach ($this->filesToWatch as $file) {
+		foreach ($filesToWatch as $file) {
 			$mTime = filemtime($file->file);
 			if ($mTime > $file->mtime) {
 				$file->mtime = $mTime;
 				$changeDetected = true;
 			}
 		}
-
+		clearstatcache();
 		return $changeDetected;
 	}
 
@@ -75,8 +94,13 @@ class FileWatcher extends ThreadProxy implements TaskInterface
 		$this->classLoader = $classLoader;
 	}
 
-	public function setProcessor($processor)
+	/**
+	 * @param mixed $callback
+	 * @return $this
+	 */
+	public function setCallback($callback)
 	{
-		$this->processor = $processor;
+		$this->callback = $callback;
+		return $this;
 	}
 }

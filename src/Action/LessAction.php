@@ -13,11 +13,13 @@ class LessAction extends Action
 		$result = [];
 		$less = new \Less_Parser();
 		foreach ($input as $file) {
-			$content = $less->parseFile($file);
-			$result[] = [
-				'path' => substr_replace($file , 'css', strrpos($file , '.') +1 ),
-				'content' => $content->getCss()
-			];
+			if (!$file instanceof FileInput) {
+				$file = FileInput::fromPath($file);
+			}
+
+			$content = $less->parseFile($file->fullPath);
+			$file->content = $content->getCss();
+			$result[] = $file;
 		}
 
 		return $result;

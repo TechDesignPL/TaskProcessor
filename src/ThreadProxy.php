@@ -5,10 +5,15 @@ namespace TechDesign\TaskProcessor;
 if (class_exists('Thread')) {
 	class ThreadProxy extends \Thread
 	{
+		public $awake;
+		public $waiting;
 	}
 } else {
 	class ThreadProxy
 	{
+		public $awake;
+		public $waiting;
+
 		public function run()
 		{
 			return true;
@@ -26,6 +31,11 @@ if (class_exists('Thread')) {
 		public function isJoined()
 		{
 			return true;
+		}
+
+		public function synchronized($callable, $context)
+		{
+
 		}
 	}
 }

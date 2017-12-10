@@ -19,11 +19,8 @@ class ConcatAction extends Action
 
 		$content = '';
 		foreach ($input as $item) {
-			$content .= is_string($item) ? file_get_contents($item) : $item['content'];
+			$content .= $item instanceof FileInput ? $item->content : file_get_contents($item);
 		}
-		return [[
-			'path' => $this->name,
-			'content' => $content
-		]];
+		return [new FileInput(null, $this->name, $content)];
 	}
 }

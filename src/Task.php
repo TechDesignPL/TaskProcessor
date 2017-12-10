@@ -25,8 +25,6 @@ class Task extends ThreadProxy implements TaskInterface
 	protected $callableChain = [];
 	/** @var \Composer\Autoload\ClassLoader */
 	protected $classLoader;
-	/** @var Processor */
-	protected $processor;
 
 	/**
 	 * @param $action
@@ -48,6 +46,7 @@ class Task extends ThreadProxy implements TaskInterface
 
 	public function run()
 	{
+		$this->awake = true;
 		$this->started = microtime(true);
 
 		if (!class_exists('Printer')) {
@@ -68,6 +67,8 @@ class Task extends ThreadProxy implements TaskInterface
 
 		$this->ended = microtime(true);
 		Printer::prnt(sprintf('Task \'%s\' ended, took: %s', $this->name,  $this->getTimeSpent()), Printer::FG_LIGHT_CYAN);
+
+		$this->awake = false;
 		return true;
 	}
 	
@@ -105,10 +106,5 @@ class Task extends ThreadProxy implements TaskInterface
 	public function setClassLoader($classLoader)
 	{
 		$this->classLoader = $classLoader;
-	}
-
-	public function setProcessor($processor)
-	{
-		$this->processor = $processor;
 	}
 }
