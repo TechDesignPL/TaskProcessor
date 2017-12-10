@@ -19,9 +19,9 @@ class ShellHelper
 		}
 
 		foreach ($args as $arg) {
-			$cmd .= ' ' . escapeshellarg($arg);
+			$cmd .= ' ' . (strpos($arg, '-') === 0 ? $arg : escapeshellarg($arg));
 		}
-
+		Printer::prnt($cmd);
 		return shell_exec($cmd);
 	}
 

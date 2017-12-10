@@ -30,7 +30,7 @@ class ImageOptimizeAction extends Action
 					ShellHelper::execShell(self::GIFSICLE_PATH, '-O3', $file->fullPath, '-o', $file->fullPath);
 					break;
 				case 'png':
-					ShellHelper::execShell(self::PNGQUANT_PATH, '--quality 65-80 --strip --skip-if-larger -f -ext .png', $file->fullPath);
+					ShellHelper::execShell(self::PNGQUANT_PATH, '--quality 65-80 --skip-if-larger -f --ext .png', $file->fullPath);
 					break;
 			}
 		}
