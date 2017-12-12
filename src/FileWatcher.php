@@ -52,10 +52,6 @@ class FileWatcher extends ThreadProxy implements TaskInterface
 				Printer::prnt('Change detected!');
 				$this->synchronized(function($thread){
 					$thread->callback = 'run';
-					$a = '';
-					foreach ($thread->tasksToExecute as $tte) {
-						$a .= $tte;
-					}
 					$thread->dataToPass = json_encode($thread->tasksToExecute);
 					$thread->waiting = true;
 					$thread->wait();

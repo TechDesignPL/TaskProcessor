@@ -8,9 +8,9 @@ class Processor
 {
 	const VERSION = '1.0.0';
 
-	/** @var TaskInterface|ThreadProxy[]  */
+	/** @var array[] */
 	public $taskDefinitions = [];
-	/** @var TaskInterface|ThreadProxy[]  */
+	/** @var TaskInterface|ThreadProxy[] */
 	public $tasks = [];
 
 
@@ -30,12 +30,15 @@ class Processor
 			$taskNames = (array)$taskNames;
 		}
 
+		$taskNames = $this->resolveChain($taskNames);
+
 		foreach ($taskNames as $taskName) {
 			$task = $this->spawnTask($taskName);
 
-			if ($task->isRunning()) {
-				$this->killTask($taskName);
-			}
+			//this is probably not needed
+//			if ($task->isRunning()) {
+//				$this->killTask($taskName);
+//			}
 
 			$this->tasks[$taskName] = $task;
 			$task->start(PTHREADS_INHERIT_ALL);
@@ -47,9 +50,13 @@ class Processor
 		}
 
 		$allTasksDone = false;
-		while(!$allTasksDone) {
+		while (!$allTasksDone) {
 			$allTasksDone = true;
 			foreach ($taskNames as $taskName) {
+				if (!isset($this->tasks[$taskName])) {
+					//task has ended
+					continue;
+				}
 				$task = $this->tasks[$taskName];
 				if ($task->awake) {
 					$allTasksDone = false;
@@ -105,19 +112,19 @@ class Processor
 	{
 		if (is_callable($task) && $isCustom) {
 			$this->taskDefinitions[$name] = [
-				'type' => 'custom',
+				'type'     => 'custom',
 				'callback' => $task
 			];
 		} elseif (is_callable($task)) {
 			//typical task
 			$this->taskDefinitions[$name] = [
-				'type' => 'task',
+				'type'     => 'task',
 				'callback' => $task
 			];
-		} elseif(is_array($task)) {
+		} elseif (is_array($task)) {
 			$this->taskDefinitions[$name] = [
-				'type' => 'task',
-				'callback' => $task
+				'type'  => 'taskChain',
+				'chain' => $task
 			];
 		} else {
 			throw new \Exception('Unsupported task type');
@@ -134,7 +141,7 @@ class Processor
 	public function spawnTask($taskName)
 	{
 		if (!isset($this->taskDefinitions[$taskName])) {
-			Printer::prnt(sprintf('Task \'%s\' wasn\'t found in task list' , $taskName));
+			Printer::prnt(sprintf('Task \'%s\' wasn\'t found in task list', $taskName));
 			exit;
 		}
 		$definition = $this->taskDefinitions[$taskName];
@@ -143,17 +150,18 @@ class Processor
 			case 'task':
 				$task = new Task($taskName, $definition['callback']);
 				break;
-			case 'taskChain':
-				$task = new TaskChain($this, $definition['callback']);
-				break;
 			case 'custom':
 				$task = $definition['callback']();
 				break;
+			case 'taskChain':
 			default:
 				throw new \Exception('Unsupported task type: ' . $definition['type']);
 		}
 
-		$task->setClassLoader($this->classLoader);
+		if (is_object($task)) {
+			$task->setClassLoader($this->classLoader);
+		}
+
 		return $task;
 	}
 
@@ -164,6 +172,24 @@ class Processor
 			$task->kill();
 		}
 		unset($this->tasks[$taskName]);
+	}
+
+	public function resolveChain($taskNames)
+	{
+		$result = [];
+		//check if it is task chain
+		foreach ($taskNames as $taskName) {
+			$definition = $this->taskDefinitions[$taskName];
+			if (is_array($definition) && $definition['type'] == 'taskChain') {
+				//this is task chain
+				$chain = $definition['chain'];
+				$result = array_merge($result, $this->resolveChain($chain));
+			} else {
+				$result[] = $taskName;
+			}
+		}
+
+		return $result;
 	}
 
 }

@@ -49,6 +49,11 @@ if (!file_exists($entryScript)) {
 	exit;
 }
 
+$tasksToRun = $argc > 2 ? array_slice($argv, 2) : [];
+
 include_once $entryScript;
 
+if (!empty($tasksToRun)) {
+	$processor->run($tasksToRun);
+}
 $processor->wait();
