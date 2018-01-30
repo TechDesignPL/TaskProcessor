@@ -67,14 +67,14 @@ class InstallAssetsAction extends Action
     public function downloadAndExtract($url, $dir)
     {
         if (!is_dir($dir)) {
-            mkdir($dir);
+            mkdir($dir, 0777, true);
         } else {
             $this->removeDirectory($dir);
         }
 
         $ext = substr($url, strrpos($url, '.') + 1, strlen($url));
 
-        $temp = tempnam(getcwd(), $ext);
+        $temp = tempnam(getcwd(), $ext) . '.' . $ext;
         $client = new Client(['verify' => false]);
         $client->request('GET', $url, ['sink' => $temp]);
 
